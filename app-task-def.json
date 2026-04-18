@@ -4,16 +4,16 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "2048",
   "memory": "16384",
-  "executionRoleArn": "arn:aws:iam::685057748560:role/doc-parser-ecs-task-execution",
-  "taskRoleArn": "arn:aws:iam::685057748560:role/doc-parser-ecs-task-execution",
+  "executionRoleArn": "arn:aws:iam::716147851038:role/doc-parser-ecs-task-execution",
+  "taskRoleArn": "arn:aws:iam::716147851038:role/doc-parser-ecs-task-execution",
   "volumes": [
     {
       "name": "qdrant-data",
       "efsVolumeConfiguration": {
-        "fileSystemId": "fs-037be44eb75b00b25",
+        "fileSystemId": "fs-089062fd7c18ae56e",
         "transitEncryption": "ENABLED",
         "authorizationConfig": {
-          "accessPointId": "fsap-07b2e612cdd24beb6",
+          "accessPointId": "fsap-06425a7132f737447",
           "iam": "ENABLED"
         }
       }
@@ -21,10 +21,10 @@
     {
       "name": "ollama-models",
       "efsVolumeConfiguration": {
-        "fileSystemId": "fs-037be44eb75b00b25",
+        "fileSystemId": "fs-089062fd7c18ae56e",
         "transitEncryption": "ENABLED",
         "authorizationConfig": {
-          "accessPointId": "fsap-05da93da4e8d55202",
+          "accessPointId": "fsap-03afc591ef3d1a4ba",
           "iam": "ENABLED"
         }
       }
@@ -33,7 +33,7 @@
   "containerDefinitions": [
     {
       "name": "app",
-      "image": "685057748560.dkr.ecr.us-east-1.amazonaws.com/doc-parser/app:latest",
+      "image": "716147851038.dkr.ecr.us-east-1.amazonaws.com/doc-parser/app:latest",
       "portMappings": [{"containerPort": 8000, "protocol": "tcp"}],
       "essential": true,
       "environment": [
@@ -46,14 +46,14 @@
       "secrets": [
         {
           "name": "OPENAI_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:685057748560:secret:doc-parser/openai-api-key:OPENAI_API_KEY::"
+          "valueFrom": "arn:aws:secretsmanager:us-east-1:716147851038:secret:doc-parser/openai-api-key:OPENAI_API_KEY::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
           "awslogs-group":         "/ecs/doc-parser-app",
-          "awslogs-region":        "us-east-1",
+          "awslogs-region":        "ap-south-1",
           "awslogs-stream-prefix": "app"
         }
       },
@@ -88,7 +88,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group":         "/ecs/doc-parser-app",
-          "awslogs-region":        "us-east-1",
+          "awslogs-region":        "ap-south-1",
           "awslogs-stream-prefix": "qdrant"
         }
       }
@@ -112,7 +112,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group":         "/ecs/doc-parser-app",
-          "awslogs-region":        "us-east-1",
+          "awslogs-region":        "ap-south-1",
           "awslogs-stream-prefix": "ollama"
         }
       }
