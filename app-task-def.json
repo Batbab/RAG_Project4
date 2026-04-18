@@ -33,62 +33,72 @@
   "containerDefinitions": [
     {
       "name": "app",
-      "image": "716147851038.dkr.ecr.us-east-1.amazonaws.com/doc-parser/app:latest",
-      "portMappings": [{"containerPort": 8000, "protocol": "tcp"}],
+      "image": "716147851038.dkr.ecr.ap-south-1.amazonaws.com/doc-parser/app:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
       "essential": true,
       "environment": [
-        {"name": "EMBEDDING_PROVIDER",  "value": "openai"},
-        {"name": "RERANKER_BACKEND",    "value": "openai"},
-        {"name": "QDRANT_URL",          "value": "http://localhost:6333"},
-        {"name": "PARSER_BACKEND",      "value": "ollama"},
-        {"name": "OLLAMA_BASE_URL",     "value": "http://localhost:11434"}
+        { "name": "EMBEDDING_PROVIDER", "value": "openai" },
+        { "name": "RERANKER_BACKEND", "value": "openai" },
+        { "name": "QDRANT_URL", "value": "http://localhost:6333" },
+        { "name": "PARSER_BACKEND", "value": "ollama" },
+        { "name": "OLLAMA_BASE_URL", "value": "http://localhost:11434" }
       ],
       "secrets": [
         {
           "name": "OPENAI_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:us-east-1:716147851038:secret:doc-parser/openai-api-key:OPENAI_API_KEY::"
+          "valueFrom": "arn:aws:secretsmanager:ap-south-1:716147851038:secret:doc-parser/openai-api-key:OPENAI_API_KEY::"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group":         "/ecs/doc-parser-app",
-          "awslogs-region":        "ap-south-1",
+          "awslogs-group": "/ecs/doc-parser-app",
+          "awslogs-region": "ap-south-1",
           "awslogs-stream-prefix": "app"
         }
       },
       "healthCheck": {
-        "command":     ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"],
-        "interval":    30,
-        "timeout":     5,
-        "retries":     3,
-        "startPeriod": 60
+        "command": [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 120
       },
       "dependsOn": [
-        {"containerName": "qdrant", "condition": "START"},
-        {"containerName": "ollama", "condition": "START"}
+        { "containerName": "qdrant", "condition": "START" },
+        { "containerName": "ollama", "condition": "START" }
       ]
     },
     {
       "name": "qdrant",
       "image": "qdrant/qdrant:v1.17.0",
-      "portMappings": [{"containerPort": 6333, "protocol": "tcp"}],
+      "portMappings": [
+        {
+          "containerPort": 6333,
+          "protocol": "tcp"
+        }
+      ],
       "essential": true,
       "mountPoints": [
         {
-          "sourceVolume":   "qdrant-data",
-          "containerPath":  "/qdrant/storage",
-          "readOnly":       false
+          "sourceVolume": "qdrant-data",
+          "containerPath": "/qdrant/storage",
+          "readOnly": false
         }
       ],
       "environment": [
-        {"name": "QDRANT__STORAGE__SKIP_FILESYNC_ON_OPEN", "value": "false"}
+        { "name": "QDRANT__STORAGE__PERFORMANCE_BOOTSTRAP_CHECK", "value": "false" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group":         "/ecs/doc-parser-app",
-          "awslogs-region":        "ap-south-1",
+          "awslogs-group": "/ecs/doc-parser-app",
+          "awslogs-region": "ap-south-1",
           "awslogs-stream-prefix": "qdrant"
         }
       }
@@ -96,23 +106,28 @@
     {
       "name": "ollama",
       "image": "ollama/ollama:latest",
-      "portMappings": [{"containerPort": 11434, "protocol": "tcp"}],
+      "portMappings": [
+        {
+          "containerPort": 11434,
+          "protocol": "tcp"
+        }
+      ],
       "essential": true,
       "mountPoints": [
         {
-          "sourceVolume":  "ollama-models",
+          "sourceVolume": "ollama-models",
           "containerPath": "/root/.ollama",
-          "readOnly":      false
+          "readOnly": false
         }
       ],
       "environment": [
-        {"name": "OLLAMA_HOST", "value": "0.0.0.0"}
+        { "name": "OLLAMA_HOST", "value": "0.0.0.0" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group":         "/ecs/doc-parser-app",
-          "awslogs-region":        "ap-south-1",
+          "awslogs-group": "/ecs/doc-parser-app",
+          "awslogs-region": "ap-south-1",
           "awslogs-stream-prefix": "ollama"
         }
       }
