@@ -82,7 +82,7 @@
         }
       ],
       "environment": [
-        {"name": "QDRANT__STORAGE__SKIP_FILESYNC_ON_OPEN", "value": "true"}
+        {"name": "QDRANT__STORAGE__SKIP_FILESYNC_ON_OPEN", "value": "false"}
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
