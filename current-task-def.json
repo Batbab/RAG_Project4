@@ -1,0 +1,249 @@
+{
+    "taskDefinition": {
+        "taskDefinitionArn": "arn:aws:ecs:ap-south-1:716147851038:task-definition/doc-parser-app:1",
+        "containerDefinitions": [
+            {
+                "name": "app",
+                "image": "716147851038.dkr.ecr.ap-south-1.amazonaws.com/doc-parser/app:latest",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 8000,
+                        "hostPort": 8000,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [
+                    {
+                        "name": "EMBEDDING_PROVIDER",
+                        "value": "openai"
+                    },
+                    {
+                        "name": "OLLAMA_BASE_URL",
+                        "value": "http://localhost:11434"
+                    },
+                    {
+                        "name": "PARSER_BACKEND",
+                        "value": "ollama"
+                    },
+                    {
+                        "name": "RERANKER_BACKEND",
+                        "value": "openai"
+                    },
+                    {
+                        "name": "QDRANT_URL",
+                        "value": "http://localhost:6333"
+                    }
+                ],
+                "mountPoints": [],
+                "volumesFrom": [],
+                "secrets": [
+                    {
+                        "name": "OPENAI_API_KEY",
+                        "valueFrom": "arn:aws:secretsmanager:ap-south-1:716147851038:secret:doc-parser/openai-api-key:OPENAI_API_KEY::"
+                    }
+                ],
+                "dependsOn": [
+                    {
+                        "containerName": "qdrant",
+                        "condition": "HEALTHY"
+                    },
+                    {
+                        "containerName": "ollama",
+                        "condition": "START"
+                    }
+                ],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/doc-parser-app",
+                        "awslogs-region": "ap-south-1",
+                        "awslogs-stream-prefix": "app"
+                    }
+                },
+                "healthCheck": {
+                    "command": [
+                        "CMD-SHELL",
+                        "curl -f http://localhost:8000/health || exit 1"
+                    ],
+                    "interval": 30,
+                    "timeout": 5,
+                    "retries": 3,
+                    "startPeriod": 60
+                },
+                "systemControls": []
+            },
+            {
+                "name": "qdrant",
+                "image": "qdrant/qdrant:v1.17.0",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 6333,
+                        "hostPort": 6333,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [],
+                "mountPoints": [
+                    {
+                        "sourceVolume": "qdrant-data",
+                        "containerPath": "/qdrant/storage",
+                        "readOnly": false
+                    }
+                ],
+                "volumesFrom": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/doc-parser-app",
+                        "awslogs-region": "ap-south-1",
+                        "awslogs-stream-prefix": "qdrant"
+                    }
+                },
+                "healthCheck": {
+                    "command": [
+                        "CMD-SHELL",
+                        "curl -f http://localhost:6333/healthz || exit 1"
+                    ],
+                    "interval": 15,
+                    "timeout": 5,
+                    "retries": 3,
+                    "startPeriod": 30
+                },
+                "systemControls": []
+            },
+            {
+                "name": "ollama",
+                "image": "ollama/ollama:latest",
+                "cpu": 0,
+                "portMappings": [
+                    {
+                        "containerPort": 11434,
+                        "hostPort": 11434,
+                        "protocol": "tcp"
+                    }
+                ],
+                "essential": true,
+                "environment": [
+                    {
+                        "name": "OLLAMA_HOST",
+                        "value": "0.0.0.0"
+                    }
+                ],
+                "mountPoints": [
+                    {
+                        "sourceVolume": "ollama-models",
+                        "containerPath": "/root/.ollama",
+                        "readOnly": false
+                    }
+                ],
+                "volumesFrom": [],
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                        "awslogs-group": "/ecs/doc-parser-app",
+                        "awslogs-region": "ap-south-1",
+                        "awslogs-stream-prefix": "ollama"
+                    }
+                },
+                "systemControls": []
+            }
+        ],
+        "family": "doc-parser-app",
+        "taskRoleArn": "arn:aws:iam::716147851038:role/doc-parser-ecs-task-execution",
+        "executionRoleArn": "arn:aws:iam::716147851038:role/doc-parser-ecs-task-execution",
+        "networkMode": "awsvpc",
+        "revision": 1,
+        "volumes": [
+            {
+                "name": "qdrant-data",
+                "efsVolumeConfiguration": {
+                    "fileSystemId": "fs-089062fd7c18ae56e",
+                    "rootDirectory": "/",
+                    "transitEncryption": "ENABLED",
+                    "authorizationConfig": {
+                        "accessPointId": "fsap-06425a7132f737447",
+                        "iam": "ENABLED"
+                    }
+                }
+            },
+            {
+                "name": "ollama-models",
+                "efsVolumeConfiguration": {
+                    "fileSystemId": "fs-089062fd7c18ae56e",
+                    "rootDirectory": "/",
+                    "transitEncryption": "ENABLED",
+                    "authorizationConfig": {
+                        "accessPointId": "fsap-03afc591ef3d1a4ba",
+                        "iam": "ENABLED"
+                    }
+                }
+            }
+        ],
+        "status": "ACTIVE",
+        "requiresAttributes": [
+            {
+                "name": "ecs.capability.execution-role-awslogs"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.ecr-auth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.task-iam-role"
+            },
+            {
+                "name": "ecs.capability.container-health-check"
+            },
+            {
+                "name": "ecs.capability.execution-role-ecr-pull"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            },
+            {
+                "name": "ecs.capability.task-eni"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+            },
+            {
+                "name": "ecs.capability.efsAuth"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+            },
+            {
+                "name": "ecs.capability.secrets.asm.environment-variables"
+            },
+            {
+                "name": "ecs.capability.efs"
+            },
+            {
+                "name": "ecs.capability.container-ordering"
+            },
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+            }
+        ],
+        "placementConstraints": [],
+        "compatibilities": [
+            "EC2",
+            "FARGATE",
+            "MANAGED_INSTANCES"
+        ],
+        "requiresCompatibilities": [
+            "FARGATE"
+        ],
+        "cpu": "2048",
+        "memory": "8192",
+        "registeredAt": "2026-04-18T12:08:59.875000+05:30",
+        "registeredBy": "arn:aws:iam::716147851038:user/doc-parser-admin"
+    },
+    "tags": []
+}
